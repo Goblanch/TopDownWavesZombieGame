@@ -1,18 +1,21 @@
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.TextCore.Text;
 
 public class PlayerController : MonoBehaviour
 {
     [Header("Dependencies")]
     [SerializeField] private InputListener _inputListener;
+    [SerializeField] private Camera _mainCamera;
     //public StateMachine<PlayerController> stateMachine;
 
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
 
-    private CharacterController _cc;
+    private CharacterController _characterController;
     private Vector2 _moveInput;
+    private Vector3 _moveDirection;
 
     #region ENABLE / DISABLE
 
@@ -34,9 +37,19 @@ public class PlayerController : MonoBehaviour
 
     void Awake()
     {
-        _cc = GetComponent<CharacterController>();
+        _characterController = GetComponent<CharacterController>();
         if (_inputListener == null)
             Debug.LogError("PlayerController: Input Listener is empty", this);
+
+        if (_mainCamera == null)
+        {
+            _mainCamera = Camera.main;
+        }
+
+        if (_mainCamera == null)
+        {
+            Debug.LogError($"{nameof(PlayerController)}: couldn't find Main Camera", this);
+        }
 
         //stateMachine.ConfigureStateMachine(this);
     }
@@ -44,6 +57,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         ApplyMovement();
+        RotateTowardsMouse();
     }
 
     private void HandleMoveInput(Vector2 moveInput)
@@ -53,13 +67,33 @@ public class PlayerController : MonoBehaviour
 
     private void ApplyMovement()
     {
-        Vector3 dir = new Vector3(_moveInput.x, 0f, _moveInput.y);
-        if (dir.sqrMagnitude > 1f)
+        Vector3 localMove = _moveInput.x * transform.right + _moveInput.y * transform.forward;
+        
+        if (localMove.sqrMagnitude > 1f)
         {
-            dir.Normalize();
+            localMove.Normalize();
         }
 
-        _cc.Move(dir * moveSpeed * Time.deltaTime);
+        _characterController.Move(localMove * moveSpeed * Time.deltaTime);
+    }
+
+    private void RotateTowardsMouse()
+    {
+        Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Plane groundPlane = new Plane(Vector3.up, transform.position);
+
+        if (groundPlane.Raycast(ray, out float enter))
+        {
+            Vector3 hitPoint = ray.GetPoint(enter);
+            Vector3 lookDirection = hitPoint - transform.position;
+            lookDirection.y = 0f;
+
+            if (lookDirection.sqrMagnitude > 0f)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+                transform.rotation = targetRotation;
+            }
+        }
     }
 
     private void HandleShootStart()
