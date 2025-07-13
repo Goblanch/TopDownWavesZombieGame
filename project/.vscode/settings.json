@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "TopDownWavesZombies.sln"
+    "dotnet.defaultSolution": "project.sln"
 }
