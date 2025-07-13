@@ -11,6 +11,7 @@ public class ShootingSystem : MonoBehaviour
     [SerializeField, Min(0f)] private float _autoFireRate = 0.1f;
     private bool _isFiring;
     private float _nextFireTime;
+    private bool _hasFiredOnce;
 
     [Header("Raycast Settings")]
     [SerializeField, Min(0f)] private float _range = 100f;
@@ -23,7 +24,11 @@ public class ShootingSystem : MonoBehaviour
 
     void Update()
     {
-
+        if (_isAutomatic && _isFiring && Time.time >= _nextFireTime)
+        {
+            Fire();
+            _nextFireTime = Time.time + _autoFireRate;
+        }
     }
 
     public void StartFiring()
@@ -35,13 +40,18 @@ public class ShootingSystem : MonoBehaviour
         }
         else
         {
-            Fire();
+            if (!_hasFiredOnce)
+            {
+                Fire();
+                _hasFiredOnce = true;
+            }
         }
     }
 
     public void StopFiring()
     {
         _isFiring = false;
+        _hasFiredOnce = false;
     }
 
     private void Fire()

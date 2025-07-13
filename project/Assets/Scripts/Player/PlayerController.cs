@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
     [Header("Dependencies")]
     [SerializeField] private InputListener _inputListener;
     [SerializeField] private Camera _mainCamera;
+    [SerializeField] private ShootingSystem _shootingSystem;
     //public StateMachine<PlayerController> stateMachine;
 
     [Header("Movement Settings")]
@@ -22,15 +23,15 @@ public class PlayerController : MonoBehaviour
     void OnEnable()
     {
         _inputListener.OnMoveEvent          += HandleMoveInput;
-        _inputListener.OnShootStartEvent    += HandleShootStart;
-        _inputListener.OnShootEndEvent      += HandleShootEnd;
+        _inputListener.OnShootStartEvent    += _shootingSystem.StartFiring;
+        _inputListener.OnShootEndEvent      += _shootingSystem.StopFiring;
     }
 
     void OnDisable()
     {
         _inputListener.OnMoveEvent          -= HandleMoveInput;
-        _inputListener.OnShootStartEvent    -= HandleShootStart;
-        _inputListener.OnShootEndEvent      -= HandleShootEnd;
+        _inputListener.OnShootStartEvent    -= _shootingSystem.StartFiring;
+        _inputListener.OnShootEndEvent      -= _shootingSystem.StopFiring;
     }
 
     #endregion
@@ -68,7 +69,7 @@ public class PlayerController : MonoBehaviour
     private void ApplyMovement()
     {
         Vector3 localMove = _moveInput.x * transform.right + _moveInput.y * transform.forward;
-        
+
         if (localMove.sqrMagnitude > 1f)
         {
             localMove.Normalize();
@@ -94,15 +95,5 @@ public class PlayerController : MonoBehaviour
                 transform.rotation = targetRotation;
             }
         }
-    }
-
-    private void HandleShootStart()
-    {
-        Debug.Log("PlayerController: SHOOT START", this);
-    }
-
-    private void HandleShootEnd()
-    {
-        Debug.Log("PlayerController: SHOOT END", this);
     }
 }
