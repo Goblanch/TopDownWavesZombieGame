@@ -60,10 +60,16 @@ public class InputListener : ScriptableObject, PlayerInputActions.IGameActions, 
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        Vector2 dir = context.ReadValue<Vector2>();
+
+        if (context.phase == InputActionPhase.Started ||
+            context.phase == InputActionPhase.Performed)
         {
-            Vector2 dir = context.ReadValue<Vector2>();
             OnMoveEvent?.Invoke(dir);
+        }
+        else if (context.phase == InputActionPhase.Canceled)
+        {
+            OnMoveEvent?.Invoke(Vector2.zero);
         }
     }
 
